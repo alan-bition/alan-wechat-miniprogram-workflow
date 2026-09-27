@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alan 微信小程序开发工作流"
+  short_description: "从 PRD、页面审查与 UI 设计到原生开发、验证和体验交付"
+  default_prompt: "使用 $alan-wechat-miniprogram-workflow，先梳理需求并审查现有页面，再按确认的原生小程序设计稿开发；明确本轮是否上传。"
