@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>微信小程序交互原型骨架</title>
+<style>
+:root{--primary:#27664d;--soft:#e3f1e8;--ink:#19372d;--muted:#526a61;--bg:#f5f7f2;--font:1;--width:375px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"PingFang SC",sans-serif}header{max-width:1040px;margin:24px auto;padding:0 20px}h1{font-size:26px;margin:0}p{margin:10px 0}label{display:block;margin:14px 0 6px}.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.controls label{margin:0}select,button,input{font:inherit;min-height:44px;border:1px solid #91a89b;border-radius:8px;padding:9px 12px;background:white;color:inherit}button{cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #6f9fd4;outline-offset:3px}.device{width:min(var(--width),calc(100% - 24px));margin:24px auto;border:1px solid #c5d6ca;background:white;border-radius:18px;overflow:hidden;font-size:calc(15px * var(--font))}.nav{padding:14px 16px;background:var(--soft);font-weight:600}.screen{padding:16px;min-height:430px}.screen[hidden]{display:none}.card{padding:16px;border-radius:12px;background:var(--bg);margin:14px 0}.primary{background:var(--primary);color:white;width:100%;border:0}.secondary{color:var(--muted)}input{width:100%;font-size:inherit}.error{color:#9d312d;min-height:1.6em}.row{display:flex;gap:8px;flex-wrap:wrap}.row button{flex:1}.number{font-size:32px;font-weight:500;color:var(--primary)}.help{font-size:13px;color:var(--muted)}.tag{display:inline-block;background:var(--soft);border-radius:8px;padding:4px 10px}footer{max-width:760px;margin:20px auto;padding:0 20px 24px}.check{display:flex;gap:8px;align-items:start}.check input{width:20px;min-height:24px;flex-shrink:0}
+</style>
+</head>
+<body>
+<header><h1>交互原型骨架</h1><p>模板示意：所有数据均为虚构，不登录微信、不访问后端。请按确认后的 PRD 替换业务与导航。</p>
+<div class="controls"><label>画布宽度<select id="width"><option>320</option><option selected>375</option><option>430</option></select></label><label>字号倍率<select id="font"><option>1</option><option>1.3</option><option>1.6</option></select></label><label>演示状态<select id="state"><option value="normal">正常</option><option value="empty">空态</option><option value="loading">加载中</option><option value="error">网络错误</option><option value="readonly">只读</option></select></label><button id="reset">重置示例</button></div></header>
+<main class="device"><div class="nav" id="nav">登录</div>
+<section class="screen" id="login"><span class="tag">虚构原型</span><h2>日常记录示例</h2><p class="secondary">先核对流程，再确定品牌设计。</p><label class="check"><input type="checkbox" id="agree"><span>我已阅读示例用户协议与隐私说明（原型占位）</span></label><p id="login-error" class="error" role="alert"></p><button class="primary" id="enter">模拟微信登录</button></section>
+<section class="screen" id="home" hidden><h2>今日概览</h2><div id="summary" class="card"></div><p id="home-state" role="status"></p><button class="primary" id="add">记一笔</button><button id="logout" style="margin-top:12px">返回登录</button></section>
+<section class="screen" id="form" hidden><h2>新增记录</h2><p class="help">示例单位：毫升。失败时保留已填写内容。</p><label for="amount">本次摄入量</label><input id="amount" type="number" min="1" max="1000" inputmode="numeric" placeholder="例如 120" aria-describedby="field-error"><p class="error" id="field-error" role="alert"></p><div class="row"><button id="cancel">取消</button><button class="primary" id="save">保存</button></div><p id="save-status" role="status"></p></section>
+</main><footer class="help">建议走查：协议未勾选 → 登录提示；空态 → 新增；输入错误 → 原位修改；网络错误 → 保留输入并重试；只读 → 禁止新增。控制栏仅用于演示，不是产品界面。</footer>
+<script>
+const $=id=>document.getElementById(id);let total=220,page='login',busy=false;
+function renderHome(){const mode=$('state').value;$('summary').textContent=mode==='empty'?'还没有记录，从第一笔开始':`今日总量：${total} 毫升`;$('home-state').textContent=({loading:'正在加载…',error:'暂时无法连接，请切换正常状态重试',readonly:'当前为只读，不能新增记录'})[mode]||'';$('add').disabled=['loading','readonly'].includes(mode);}
+function go(next){page=next;for(const id of ['login','home','form'])$(id).hidden=id!==next;$('nav').textContent=({login:'登录',home:'首页',form:'新增记录'})[next];if(next==='home')renderHome();}
+$('width').onchange=e=>document.documentElement.style.setProperty('--width',`${e.target.value}px`);$('font').onchange=e=>document.documentElement.style.setProperty('--font',e.target.value);$('state').onchange=()=>renderHome();
+$('enter').onclick=()=>{if(!$('agree').checked){$('login-error').textContent='请先阅读并同意示例协议';return;}$('login-error').textContent='';go('home');};
+$('add').onclick=()=>{if($('add').disabled)return;$('field-error').textContent='';go('form');};$('logout').onclick=()=>go('login');$('cancel').onclick=()=>{if(!busy)go('home');};
+$('save').onclick=async()=>{if(busy)return;const n=Number($('amount').value);if(!Number.isInteger(n)||n<1||n>1000){$('field-error').textContent='请输入 1–1000 的整数（示例规则）';return;}if($('state').value==='readonly'){$('field-error').textContent='当前只读，不能保存';return;}busy=true;$('save').disabled=true;$('cancel').disabled=true;$('save-status').textContent='保存中…';await new Promise(r=>setTimeout(r,350));if($('state').value==='error'){$('field-error').textContent='模拟网络错误：输入已保留，请切换正常状态重试';}else{total=($('state').value==='empty'?0:total)+n;$('state').value='normal';$('amount').value='';$('field-error').textContent='';go('home');}busy=false;$('save').disabled=false;$('cancel').disabled=false;$('save-status').textContent='';};
+$('reset').onclick=()=>{if(busy)return;total=220;$('agree').checked=false;$('amount').value='';$('state').value='normal';$('login-error').textContent='';$('field-error').textContent='';go('login');};
+</script></body></html>
